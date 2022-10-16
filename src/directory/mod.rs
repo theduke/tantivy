@@ -8,6 +8,7 @@ mod directory_lock;
 mod file_slice;
 mod file_watcher;
 mod footer;
+mod fs_directory;
 mod managed_directory;
 mod ram_directory;
 mod watch_event_router;
@@ -27,6 +28,7 @@ pub(crate) use self::composite_file::{CompositeFile, CompositeWrite};
 pub use self::directory::{Directory, DirectoryClone, DirectoryLock};
 pub use self::directory_lock::{Lock, INDEX_WRITER_LOCK, META_LOCK};
 pub use self::file_slice::{FileHandle, FileSlice};
+pub use self::fs_directory::FsDirectory;
 pub use self::ram_directory::RamDirectory;
 pub use self::watch_event_router::{WatchCallback, WatchCallbackList, WatchHandle};
 

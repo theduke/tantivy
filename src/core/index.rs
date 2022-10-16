@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 use std::fmt;
-#[cfg(feature = "mmap")]
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -160,13 +159,17 @@ impl IndexBuilder {
     ///
     /// If a previous index was in this directory, it returns an
     /// [`TantivyError::IndexAlreadyExists`] error.
-    #[cfg(feature = "mmap")]
     pub fn create_in_dir<P: AsRef<Path>>(self, directory_path: P) -> crate::Result<Index> {
-        let mmap_directory: Box<dyn Directory> = Box::new(MmapDirectory::open(directory_path)?);
-        if Index::exists(&*mmap_directory)? {
+        #[cfg(feature = "mmap")]
+        let directory: Box<dyn Directory> = Box::new(MmapDirectory::open(directory_path)?);
+
+        #[cfg(not(feature = "mmap"))]
+        let directory: Box<dyn Directory> = Box::new(crate::directory::FsDirectory::open(directory_path)?);
+
+        if Index::exists(&*directory)? {
             return Err(TantivyError::IndexAlreadyExists);
         }
-        self.create(mmap_directory)
+        self.create(directory)
     }
 
     /// Dragons ahead!!!
@@ -340,7 +343,6 @@ impl Index {
     ///
     /// If a previous index was in this directory, then it returns
     /// a [`TantivyError::IndexAlreadyExists`] error.
-    #[cfg(feature = "mmap")]
     pub fn create_in_dir<P: AsRef<Path>>(
         directory_path: P,
         schema: Schema,
@@ -462,10 +464,14 @@ impl Index {
     }
 
     /// Opens a new directory from an index path.
-    #[cfg(feature = "mmap")]
     pub fn open_in_dir<P: AsRef<Path>>(directory_path: P) -> crate::Result<Index> {
-        let mmap_directory = MmapDirectory::open(directory_path)?;
-        Index::open(mmap_directory)
+        #[cfg(feature = "mmap")]
+        let directory = MmapDirectory::open(directory_path)?;
+
+        #[cfg(not(feature = "mmap"))]
+        let directory = crate::directory::FsDirectory::open(directory_path)?;
+
+        Index::open(directory)
     }
 
     /// Returns the list of the segment metas tracked by the index.
